@@ -1,0 +1,68 @@
+# =============================================================================
+# Q3(c) - GitHub Actions CI/CD Pipeline
+# =============================================================================
+# This workflow automates data quality validation and testing on every push
+# or pull request to the main branch.
+#
+# HOW CI/CD SUPPORTS AGILE & ITERATIVE DELIVERY:
+# -----------------------------------------------
+# 1. Rapid Feedback   — Developers receive immediate feedback on whether their
+#                        changes break data quality standards, enabling fast
+#                        iteration within sprints.
+# 2. Continuous Testing — Automated tests run on every commit, catching
+#                         regressions early before they reach production.
+# 3. Iterative Delivery — Each merge to main is validated automatically,
+#                          supporting the Agile principle of delivering
+#                          working software frequently.
+# 4. Team Confidence   — The pipeline acts as a safety net, allowing team
+#                         members to refactor and improve code with confidence.
+# 5. Traceability      — Every pipeline run is logged, providing an audit
+#                         trail of quality checks for each change.
+# =============================================================================
+
+name: Data Quality CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ---------------------------------------------------------------------------
+# Jobs
+# ---------------------------------------------------------------------------
+jobs:
+  test:
+    name: Data Validation & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Python environment
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # Step 3: Install project dependencies
+      # All libraries required for data analysis, ML, and testing
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy scikit-learn pytest matplotlib seaborn joblib streamlit plotly
+
+      # Step 4: Run the automated data validation script (Q3a)
+      # This script checks for missing values, duplicates, data types,
+      # and value ranges. It exits with code 1 if any check fails,
+      # which will cause the pipeline to fail — blocking the merge.
+      - name: Run data validation script
+        run: python scripts/validate_data.py
+
+      # Step 5: Run the pytest test suite (Q3c)
+      # Verbose output (-v) shows individual test pass/fail status,
+      # making it easy to diagnose issues from the Actions log.
+      - name: Run pytest data quality tests
+        run: pytest tests/test_data_quality.py -v
